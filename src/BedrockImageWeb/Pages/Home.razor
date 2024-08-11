@@ -4,7 +4,7 @@
 <label for="Description" class="form-label">Description:</label>
 <div class="d-flex gap-2">
     <textarea cols="120" rows="1" type="text" @bind="Description" title="Enter a description of the image to generate" autofocus="autofocus"/>
-    <select title="Style Preset">
+    <select title="Style Preset" @bind="StylePreset">
         <option value="3d-model">3D Model</option>
         <option value="analog-film">Analog Film</option>
         <option value="anime">Anime</option>
