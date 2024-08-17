@@ -18,7 +18,7 @@ public class Function
 {
     private const string StableDiffusionXLModelId = "stability.stable-diffusion-xl-v1";
     private const double TimeoutDuration = 12;
-    private static readonly RegionEndpoint Region = RegionEndpoint.USEast1;
+    private static readonly RegionEndpoint Region = RegionEndpoint.USWest2;
     private static readonly AmazonBedrockRuntimeClient BedrockClient = new(Region);
     private static readonly IAmazonS3 S3Client = new AmazonS3Client(Region);
     private static readonly string BucketName = Environment.GetEnvironmentVariable("BUCKET") ?? throw new InvalidOperationException("BUCKET environment variable is not set.");
@@ -54,7 +54,8 @@ public class Function
                     return new APIGatewayProxyResponse
                     {
                         StatusCode = (int)HttpStatusCode.InternalServerError,
-                        Body = null
+                        Body = null,
+                        Headers = GenerateCorsHeaders()
                     };
                 }
                 // here you can write your logic to upload this base64 image to S3 and
@@ -64,7 +65,8 @@ public class Function
                 return new APIGatewayProxyResponse
                 {
                     StatusCode = (int)HttpStatusCode.OK,
-                    Body = urlString
+                    Body = urlString,
+                    Headers = GenerateCorsHeaders()
                 };
 
             }
@@ -81,7 +83,8 @@ public class Function
         return new APIGatewayProxyResponse
         {
             StatusCode = (int)HttpStatusCode.InternalServerError,
-            Body = "Internal Server Error"
+            Body = "Internal Server Error",
+            Headers = GenerateCorsHeaders()
         };
     }
 
@@ -159,6 +162,16 @@ public class Function
             Console.WriteLine($"Error: '{ex.Message}'");
             return string.Empty;
         }
+    }
+
+    private static IDictionary<string, string> GenerateCorsHeaders()
+    {
+        return new Dictionary<string, string>
+        {
+            { "Access-Control-Allow-Origin", "*" },
+            { "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS" },
+            { "Access-Control-Allow-Headers", "Content-Type, Authorization" }
+        };
     }
 }
 

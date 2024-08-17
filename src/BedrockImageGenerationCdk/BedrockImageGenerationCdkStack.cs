@@ -60,7 +60,13 @@ namespace BedrockImageGenerationCdk
             {
                 RestApiName = "BedrockImageGenerationRestAPI",
                 Description = "This API provide endponts to interact with Bedrock for text eneration",
-                Deploy = false
+                Deploy = false,
+                DefaultCorsPreflightOptions = new CorsOptions
+                {
+                    AllowOrigins = Cors.ALL_ORIGINS,
+                    AllowMethods = Cors.ALL_METHODS,
+                    AllowHeaders = ["Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token"]
+                }
             });
 
             var deployment = new Deployment(this, "My Deployment", new DeploymentProps { Api = restAPI });
