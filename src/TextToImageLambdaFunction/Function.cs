@@ -18,7 +18,7 @@ public class Function
 {
     private const string StableDiffusionXLModelId = "stability.stable-diffusion-xl-v1";
     private const double TimeoutDuration = 12;
-    private static readonly RegionEndpoint Region = RegionEndpoint.USEast1;
+    private static readonly RegionEndpoint Region = RegionEndpoint.USWest2;
     private static readonly AmazonBedrockRuntimeClient BedrockClient = new(Region);
     private static readonly IAmazonS3 S3Client = new AmazonS3Client(Region);
     private static readonly string BucketName = Environment.GetEnvironmentVariable("BUCKET") ?? throw new InvalidOperationException("BUCKET environment variable is not set.");
