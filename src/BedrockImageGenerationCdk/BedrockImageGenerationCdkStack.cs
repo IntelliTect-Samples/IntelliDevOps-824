@@ -31,7 +31,7 @@ namespace BedrockImageGenerationCdk
 
             _ = new BucketDeployment(this, "DeployWebsite", new BucketDeploymentProps
             {
-                Sources = new[] { Source.Asset("./src/BedrockImageWeb/wwwroot") },
+                Sources = new[] { Source.Asset("./src/BedrockImageWeb/bin/Release/net8.0/publish/wwwroot") },
                 DestinationBucket = websiteBucket,
             });
 
@@ -42,7 +42,7 @@ namespace BedrockImageGenerationCdk
             {
                 DefaultRootObject = "index.html",
                 OriginConfigs = new[] { new cloudFront.SourceConfiguration
-                {
+                {   
                     S3OriginSource = new cloudFront.S3OriginConfig
                     {
                         S3BucketSource = websiteBucket,
