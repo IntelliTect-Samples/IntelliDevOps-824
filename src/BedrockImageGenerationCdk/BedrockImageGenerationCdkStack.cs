@@ -1,11 +1,13 @@
 using Amazon.CDK;
 using Amazon.CDK.AWS.APIGateway;
+using cloudFront = Amazon.CDK.AWS.CloudFront;
 using Amazon.CDK.AWS.IAM;
 using Amazon.CDK.AWS.Lambda;
 using Amazon.CDK.AWS.S3;
 using Constructs;
 using System;
 using System.Collections.Generic;
+using Amazon.CDK.AWS.S3.Deployment;
 
 namespace BedrockImageGenerationCdk
 {
@@ -19,6 +21,35 @@ namespace BedrockImageGenerationCdk
             {
                 BucketName = (environment + "-GenAIImages" + Account).ToLower(),
                 RemovalPolicy = RemovalPolicy.RETAIN
+            });
+            
+            var websiteBucket = new Bucket(this, "WebsiteBucket", new BucketProps
+            {
+                BucketName = (environment + "-GenAIImages-Website" + Account).ToLower(),
+                AccessControl = BucketAccessControl.PRIVATE,
+            });
+
+            _ = new BucketDeployment(this, "DeployWebsite", new BucketDeploymentProps
+            {
+                Sources = new[] { Source.Asset("./src/BedrockImageWeb/bin/Release/net8.0/publish/wwwroot") },
+                DestinationBucket = websiteBucket,
+            });
+
+            var originAccessIdentity = new cloudFront.OriginAccessIdentity(this, "OriginAccessIdentity");
+            websiteBucket.GrantRead(originAccessIdentity);
+
+            var distribution = new cloudFront.CloudFrontWebDistribution(this, "MyDistribution", new cloudFront.CloudFrontWebDistributionProps
+            {
+                DefaultRootObject = "index.html",
+                OriginConfigs = new[] { new cloudFront.SourceConfiguration
+                {   
+                    S3OriginSource = new cloudFront.S3OriginConfig
+                    {
+                        S3BucketSource = websiteBucket,
+                        OriginAccessIdentity = originAccessIdentity
+                    },
+                    Behaviors = new[] { new cloudFront.Behavior { IsDefaultBehavior = true } }
+                } },
             });
 
             var stableDiffusionXLG1Handler = new Function(this, "StableDiffusionXLG1Handler", new FunctionProps
@@ -87,10 +118,11 @@ namespace BedrockImageGenerationCdk
             }));
 
             //Output results of the CDK Deployment
-            new CfnOutput(this, "Deployment start Time:", new CfnOutputProps() { Value = DateTime.Now.ToString() });
-            new CfnOutput(this, "Region:", new CfnOutputProps() { Value = this.Region });
-            new CfnOutput(this, "Amazon API Gateway Enpoint:", new CfnOutputProps() { Value = restAPI.Url });
-            new CfnOutput(this, "Amazon S3 Bucket Name:", new CfnOutputProps() { Value = s3Bucket.BucketName });
+            _ = new CfnOutput(this, "Deployment start Time:", new CfnOutputProps() { Value = DateTime.Now.ToString() });
+            _ = new CfnOutput(this, "Region:", new CfnOutputProps() { Value = this.Region });
+            _ = new CfnOutput(this, "Amazon API Gateway Enpoint:", new CfnOutputProps() { Value = restAPI.Url });
+            _ = new CfnOutput(this, "Amazon S3 Bucket Name:", new CfnOutputProps() { Value = s3Bucket.BucketName });
+            _ = new CfnOutput(this, "Website URL:", new CfnOutputProps { Value = distribution.DistributionDomainName });
         }
     }
 }
